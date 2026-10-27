@@ -12,9 +12,23 @@ def normalize(weights: dict) -> dict:
     - Conserve las claves y su orden; no modifique weights.
     - Rechace pesos negativos, no finitos, diccionarios vacíos y suma cero.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Complete este bloque TODO")
-    # FIN DEL BLOQUE DEL ESTUDIANTE
+    if not isinstance(weights, dict) or not weights:
+        raise ValueError("Se requiere un diccionario de pesos no vacío")
+
+    probabilities = {}
+    for outcome, weight in weights.items():
+        try:
+            valid = math.isfinite(weight) and weight >= 0
+        except TypeError as error:
+            raise ValueError("Los pesos deben ser números finitos no negativos") from error
+        if not valid:
+            raise ValueError("Los pesos deben ser números finitos no negativos")
+        probabilities[outcome] = weight
+
+    total = sum(probabilities.values())
+    if total == 0:
+        raise ValueError("La suma de los pesos debe ser positiva")
+    return {outcome: weight / total for outcome, weight in probabilities.items()}
 
 
 def expected_utility(distribution: dict, utilities: dict) -> float:
@@ -37,9 +51,7 @@ def expected_utility(distribution: dict, utilities: dict) -> float:
         raise ValueError("La distribución debe sumar uno")
     if any(not math.isfinite(u) for u in utilities.values()):
         raise ValueError("Utilidades no finitas")
-    # TODO: Add your code here
-    raise NotImplementedError("Complete este bloque TODO")
-    # FIN DEL BLOQUE DEL ESTUDIANTE
+    return sum(distribution[outcome] * utilities[outcome] for outcome in distribution)
 
 
 def best_action(distribution: dict, actions: dict) -> tuple[str, dict]:
@@ -56,6 +68,12 @@ def best_action(distribution: dict, actions: dict) -> tuple[str, dict]:
     # Validación de las acciones; no modificar.
     if not actions:
         raise ValueError("Se requiere al menos una acción")
-    # TODO: Add your code here
-    raise NotImplementedError("Complete este bloque TODO")
-    # FIN DEL BLOQUE DEL ESTUDIANTE
+    expected_values = {
+        action: expected_utility(distribution, utility_table)
+        for action, utility_table in actions.items()
+    }
+    chosen = next(iter(expected_values))
+    for action, value in expected_values.items():
+        if value > expected_values[chosen]:
+            chosen = action
+    return chosen, expected_values

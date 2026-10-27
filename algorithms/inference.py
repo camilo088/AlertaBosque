@@ -24,6 +24,35 @@ def enumeration_ask(network, query: str, evidence: dict) -> dict:
     # Valida nombres de variables y dominio de la evidencia.
     network.validate_query(query, evidence)
 
-    # TODO: Add your code here
-    raise NotImplementedError("Complete este bloque TODO")
-    # FIN DEL BLOQUE DEL ESTUDIANTE
+    def enumerate_all(index: int, event: dict) -> float:
+        if index == len(network.variables):
+            return 1.0
+
+        variable = network.variables[index]
+        if variable in event:
+            value = event[variable]
+            probability = network.probability(variable, value, event)
+            return probability * enumerate_all(index + 1, event)
+
+        total = 0.0
+        for value in (0, 1):
+            extended_event = dict(event)
+            extended_event[variable] = value
+            probability = network.probability(variable, value, extended_event)
+            total += probability * enumerate_all(index + 1, extended_event)
+        return total
+
+    if query in evidence:
+        observed = evidence[query]
+        evidence_probability = enumerate_all(0, dict(evidence))
+        weights = {0: 0.0, 1: 0.0}
+        weights[observed] = evidence_probability
+        return normalize(weights)
+
+    weights = {}
+    for value in (0, 1):
+        event = dict(evidence)
+        event[query] = value
+        weights[value] = enumerate_all(0, event)
+
+    return normalize(weights)
