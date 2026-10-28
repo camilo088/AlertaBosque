@@ -89,6 +89,20 @@ def extract_policy(mdp, values):
     - Reutilice action_value: no basta elegir el vecino de mayor valor.
     - Respete mdp.actions: desempate N, E, S, W conservando el primero.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Complete este bloque TODO")
-    # FIN DEL BLOQUE DEL ESTUDIANTE
+ 
+    politica = {}
+    for estado in mdp.states:
+        acciones = mdp.actions(estado)
+        if not acciones:
+            politica[estado] = None
+            continue
+        mejor_accion, mejor_q = None, -math.inf
+        for accion in acciones:  # orden N, E, S, W
+            q = action_value(mdp, estado, accion, values)
+            # Estricto con margen 1e-12: diferencias de redondeo cuentan como
+            # empate y se conserva la primera acción del orden.
+            if q > mejor_q + 1e-12:
+                mejor_accion, mejor_q = accion, q
+        politica[estado] = mejor_accion
+    return politica
+   
